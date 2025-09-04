@@ -1,0 +1,56 @@
+name: Publish word-storage-opendic-worker docker image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'server.js'
+      - 'worker.js'
+      - 'models/**'
+      - 'services/**'
+      - 'scripts/**'
+      - 'package*.json'
+      - 'Dockerfile'
+      - '.github/workflows/docker-image.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          
+      - name: Extract version from package.json
+        id: version
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+        
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/word-storage-opendic-worker:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/word-storage-opendic-worker:${{ steps.version.outputs.VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          
+      - name: Update Docker Hub description
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/word-storage-opendic-worker
+          short-description: "Background Worker for Word Storage OpenDic - AI-powered wordbook generation service"
+          readme-filepath: README.md
