@@ -62,6 +62,29 @@ class GeminiWordAnalyzer {
     this.genAI = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY
     });
+    
+    // 캐시된 모델 초기화
+    this.cachedModel = null;
+    this.initializeCachedModel();
+  }
+
+  async initializeCachedModel() {
+    try {
+      // 캐시된 컨텐츠 생성 (한 번만 실행)
+      const cachedContent = await this.genAI.cachedContents.create({
+        model: 'gemini-1.5-flash-latest',
+        displayName: 'word-analysis-system-instruction',
+        systemInstruction: CACHED_SYSTEM_INSTRUCTION,
+        ttlSeconds: 3600, // 1시간 캐시 유지
+      });
+      
+      // 캐시된 모델 생성
+      this.cachedModel = this.genAI.getGenerativeModelFromCachedContent(cachedContent);
+      console.log('Gemini cached model initialized successfully');
+    } catch (error) {
+      console.warn('Failed to initialize cached model, falling back to regular model:', error.message);
+      this.cachedModel = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+    }
   }
 
   createWordAnalysisPrompt(word, selectedLanguage = null) {
@@ -113,17 +136,19 @@ ${languageInstructions}
     const maxRetries = 2; // 최대 2번까지 재시도 (총 3번 시도)
     
     try {
-      const prompt = CACHED_SYSTEM_INSTRUCTION + '\n\n' + 
-                    this.createWordAnalysisPrompt(word, selectedLanguage);
+      // 캐시된 모델이 아직 준비되지 않았으면 대기
+      if (!this.cachedModel) {
+        await this.initializeCachedModel();
+      }
       
-      const result = await this.genAI.models.generateContent({
-        model: "gemini-1.5-flash-latest",
-        contents: prompt,
-        config: {
-          generationConfig: { responseMimeType: "application/json" },
-        },
+      const prompt = this.createWordAnalysisPrompt(word, selectedLanguage);
+      
+      const result = await this.cachedModel.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json" }
       });
-      const response = result.text;
+      
+      const response = result.response.text();
       
       // JSON 응답 파싱
       let wordData;
