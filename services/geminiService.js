@@ -70,20 +70,25 @@ class GeminiWordAnalyzer {
 
   async initializeCachedModel() {
     try {
-      // 캐시된 컨텐츠 생성 (한 번만 실행)
-      const cachedContent = await this.genAI.cachedContents.create({
+      // 새로운 @google/genai API 사용
+      const cache = await this.genAI.caches.create({
         model: 'gemini-1.5-flash-latest',
-        displayName: 'word-analysis-system-instruction',
-        systemInstruction: CACHED_SYSTEM_INSTRUCTION,
-        ttlSeconds: 3600, // 1시간 캐시 유지
+        config: {
+          displayName: 'word-analysis-system-instruction',
+          systemInstruction: CACHED_SYSTEM_INSTRUCTION,
+          ttl: '18000s', // 5시간 캐시 유지
+        }
       });
       
       // 캐시된 모델 생성
-      this.cachedModel = this.genAI.getGenerativeModelFromCachedContent(cachedContent);
+      this.cachedModel = this.genAI.models.getGenerativeModel({
+        model: 'gemini-1.5-flash-latest',
+        cachedContent: cache.name
+      });
       console.log('Gemini cached model initialized successfully');
     } catch (error) {
       console.warn('Failed to initialize cached model, falling back to regular model:', error.message);
-      this.cachedModel = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+      this.cachedModel = this.genAI.models.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
     }
   }
 
