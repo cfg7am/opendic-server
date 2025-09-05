@@ -197,6 +197,43 @@ app.post("/api/jobs/:jobId/restart", async (req, res) => {
 	}
 });
 
+// POST /api/jobs/:jobId/finalize - 작업 최종 완료 (Main 앱에서 저장 완료 후 호출)
+app.post("/api/jobs/:jobId/finalize", async (req, res) => {
+	try {
+		const { wordbookId, finalResult } = req.body;
+		const job = await Job.findOne({ jobId: req.params.jobId });
+
+		if (!job) {
+			return res.status(404).json({ error: "작업을 찾을 수 없습니다." });
+		}
+
+		// 작업 결과 업데이트
+		job.result = {
+			...job.result,
+			...finalResult,
+			wordbookId
+		};
+		
+		// 상태가 아직 완료되지 않았다면 완료로 변경
+		if (job.status !== 'completed') {
+			job.status = 'completed';
+			job.completedAt = new Date();
+		}
+		
+		await job.save();
+		
+		console.log(`Job finalized: ${job.jobId} with wordbook ID: ${wordbookId}`);
+
+		res.json({
+			success: true,
+			message: "작업이 최종 완료되었습니다.",
+		});
+	} catch (error) {
+		console.error("Error finalizing job:", error);
+		res.status(500).json({ error: error.message });
+	}
+});
+
 // 건강 상태 체크
 app.get("/health", (req, res) => {
 	res.json({

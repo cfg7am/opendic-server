@@ -158,8 +158,9 @@ class WorkbookWorker {
         updatedAt: new Date()
       };
 
-      const newWordbook = new Wordbook(wordbookData);
-      await newWordbook.save();
+      // Worker에서는 저장하지 않고 데이터만 준비 (중복 저장 방지)
+      // const newWordbook = new Wordbook(wordbookData);
+      // await newWordbook.save();
       
       // 실패한 단어들 기록
       job.data.failedWords = failedWords;
@@ -168,14 +169,14 @@ class WorkbookWorker {
         totalAnalyzed: analyzedWords.length,
         successfullyAnalyzed: analyzedWords.length - failedWords.length,
         failedWords: failedWords,
-        wordbookId: newWordbook._id.toString()
+        wordbookId: null // Main 앱에서 저장 후 ID 받을 예정
       };
       
       // 메인 애플리케이션에 완성된 단어장 전송
       await this.sendCompletedWordbookToMainApp(wordbookData, job.jobId, completionResult);
       
-      // 작업 완료 처리
-      await job.markCompleted(newWordbook._id.toString(), completionResult);
+      // 작업 완료 처리 (Main 앱에서 저장되므로 임시 ID 사용)
+      await job.markCompleted('pending_main_app_save', completionResult);
 
     } catch (error) {
       console.error(`[${this.workerId}] Job processing failed:`, error);
