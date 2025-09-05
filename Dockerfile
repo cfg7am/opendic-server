@@ -13,7 +13,7 @@ WORKDIR /app
 # 먼저 package files만 복사하여 dependency 설치
 COPY package*.json ./
 
-RUN npm ci --only=production && \
+RUN npm i --only=production && \
     npm cache clean --force
 
 # 나머지 애플리케이션 파일들 복사
