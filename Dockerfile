@@ -2,7 +2,7 @@ FROM node:18-alpine
 
 ENV NODE_ENV=production
 ENV PORT=32756
-ENV CORS_ORIGIN=*
+ENV CORS_ORIGIN=http://dic.vavava.app
 
 RUN apk add --no-cache \
     curl \

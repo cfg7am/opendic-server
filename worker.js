@@ -205,7 +205,7 @@ class WorkbookWorker {
         return;
       }
 
-      const fetch = require('node-fetch');
+      const { default: fetch } = await import('node-fetch');
       const response = await fetch(`${mainAppUrl}/admin/wordbooks/worker-completed`, {
         method: 'POST',
         headers: {
