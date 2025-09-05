@@ -98,8 +98,8 @@ class WorkbookWorker {
         
         try {
           // 작업이 취소되었는지 확인
-          await job.reload();
-          if (job.status === 'cancelled') {
+          const currentJob = await Job.findById(job._id);
+          if (currentJob && currentJob.status === 'cancelled') {
             return;
           }
           
