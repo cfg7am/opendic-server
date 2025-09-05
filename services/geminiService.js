@@ -116,14 +116,13 @@ ${languageInstructions}
       const prompt = CACHED_SYSTEM_INSTRUCTION + '\n\n' + 
                     this.createWordAnalysisPrompt(word, selectedLanguage);
       
-      const result = await this.genAI.models.generateContent({
+      const model = this.genAI.getGenerativeModel({ 
         model: "gemini-1.5-flash-latest",
-        contents: prompt,
-        config: {
-          generationConfig: { responseMimeType: "application/json" },
-        },
+        generationConfig: { responseMimeType: "application/json" }
       });
-      const response = result.text;
+      
+      const result = await model.generateContent(prompt);
+      const response = result.response.text();
       
       // JSON 응답 파싱
       let wordData;
