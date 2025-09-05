@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
 const { v4: uuidv4 } = require('uuid');
 
 const CACHED_SYSTEM_INSTRUCTION = `
@@ -59,9 +59,8 @@ class GeminiWordAnalyzer {
       throw new Error('GEMINI_API_KEY environment variable is required');
     }
     
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    this.model = this.genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash-latest" 
+    this.genAI = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY
     });
   }
 
@@ -117,8 +116,14 @@ ${languageInstructions}
       const prompt = CACHED_SYSTEM_INSTRUCTION + '\n\n' + 
                     this.createWordAnalysisPrompt(word, selectedLanguage);
       
-      const result = await this.model.generateContent(prompt);
-      const response = result.response.text();
+      const result = await this.genAI.models.generateContent({
+        model: "gemini-1.5-flash-latest",
+        contents: prompt,
+        config: {
+          generationConfig: { responseMimeType: "application/json" },
+        },
+      });
+      const response = result.text;
       
       // JSON 응답 파싱
       let wordData;
