@@ -115,9 +115,9 @@ class WorkbookWorker {
           const analyzedWord = await this.analyzer.analyzeWord(word, language_category);
           analyzedWords.push(analyzedWord);
           
-          // 20초 대기 (API Rate Limiting 방지)
+          // 30초 대기 (API Rate Limiting 방지)
           if (i < words.length - 1) {
-            await this.sleep(20000);
+            await this.sleep(30000);
           }
           
         } catch (error) {
