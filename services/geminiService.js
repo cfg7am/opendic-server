@@ -12,6 +12,7 @@ You are an expert language learning assistant. Analyze the given word and provid
 5. partOfSpeech: MUST ALWAYS be in KOREAN (한글) - use terms like "명사", "동사", "형용사", "부사", "전치사" etc.
 6. quizWrongAnswers: MUST be 3 plausible Korean meanings that are WRONG but similar to the correct meaning
 7. CONTENT FILTERING: NEVER provide offensive, profane, sexually explicit, derogatory, racist, or discriminatory content in meanings, descriptions, synonyms, examples, or any other field. Always maintain educational and respectful content.
+8. Pronunciation: Provide proper pronunciation in IPA format, enclosed in slashes: /pronunciation/.
 
 If the input word is in English, ALL synonyms must be English words.
 If the input word is in French, ALL synonyms must be French words.
@@ -32,25 +33,118 @@ Respond with ONLY valid JSON in this exact structure:
   "definitions": [
     { 
       "partOfSpeech": "품사를 반드시 한글로 (예: 명사, 동사, 형용사, 부사, 전치사 등)",
-      "pronunciation": "IPA pronunciation for this specific part of speech",
+      "pronunciation": "/ˈælɡərɪðəm/ IPA pronunciation for this specific part of speech",
       "meaning": ["Primary meaning in KOREAN", "Secondary meaning in KOREAN"], 
-      "description": "Detailed explanation in KOREAN for this specific part of speech"
+      "description": "단어 품사별 학습자에게 도움될 만한 상세 설명을 한국어로만 작성"
+    },
+    {
+      "partOfSpeech": "두 번째 품사 (다른 품사가 있을 경우에만)",
+      "pronunciation": "/ˈælɡərɪðəm/ IPA pronunciation for second part of speech (if different)",
+      "meaning": ["Primary meaning for second POS", "Secondary meaning for second POS"],
+       "description": "단어 품사별 학습자에게 도움될 만한 상세 설명을 한국어로만 작성"
     }
   ],
   "synonyms": ["SYNONYM_1_IN_SAME_LANGUAGE", "SYNONYM_2_IN_SAME_LANGUAGE", "SYNONYM_3_IN_SAME_LANGUAGE"],
   "examples": [
     {
       "sentence": "EXAMPLE_SENTENCE_1_IN_SAME_LANGUAGE",
-      "translation": "Korean translation"
+      "translation": "한국어로만 번역"
     },
     {
       "sentence": "EXAMPLE_SENTENCE_2_IN_SAME_LANGUAGE", 
-      "translation": "Korean translation"
+      "translation": "한국어로만 번역"
     }
   ],
   "quizWrongAnswers": ["틀린뜻1", "틀린뜻2", "틀린뜻3"],
   "addedAt": "[CURRENT_DATE]"
 }
+
+CORRECT EXAMPLE for English word "happy" (single part of speech):
+{
+  "word": "happy",
+  "definitions": [
+    {
+      "partOfSpeech": "형용사",
+      "pronunciation": "/ˈhæpi/",
+      "meaning": ["행복한", "기쁜", "만족스러운"],
+      "description": "즐거움이나 만족감을 느끼는 상태를 나타내는 형용사입니다."
+    }
+  ],
+  "synonyms": ["joyful", "cheerful", "content", "pleased"],
+  "idioms": [
+    {
+      "phrase": "happy as a clam",
+      "meaning": "매우 행복한"
+    }
+  ],
+  "examples": [
+    {
+      "sentence": "She looks very happy today.",
+      "translation": "그녀는 오늘 매우 행복해 보입니다."
+    },
+    {
+      "sentence": "I'm happy to help you with this project.",
+      "translation": "이 프로젝트를 도와드릴 수 있어서 기쁩니다."
+    }
+  ],
+  "quizWrongAnswers": ["슬픈", "화난", "피곤한"],
+  "addedAt": "2023-10-01"
+}
+
+CORRECT EXAMPLE for English word "present" (multiple parts of speech):
+{
+  "word": "present",
+  "definitions": [
+    {
+      "partOfSpeech": "명사",
+      "pronunciation": "/ˈprez.ənt/",
+      "meaning": ["선물", "현재"],
+      "description": "누군가에게 주는 물건이나 현재 시점을 나타내는 명사입니다."
+    },
+    {
+      "partOfSpeech": "동사",
+      "pronunciation": "/prɪˈzent/",
+      "meaning": ["발표하다", "제공하다", "증정하다"],
+      "description": "무언가를 보여주거나 제공하는 행위를 나타내는 동사입니다."
+    }
+  ],
+  "synonyms": ["gift", "offering", "show", "display", "give"],
+  "idioms": [
+    {
+      "phrase": "present company excluded",
+      "meaning": "현재 여기 있는 사람들은 제외하고"
+    }
+  ],
+  "examples": [
+    {
+      "sentence": "She gave me a beautiful present for my birthday.",
+      "translation": "그녀는 내 생일에 아름다운 선물을 주었습니다."
+    },
+    {
+      "sentence": "I will present my findings at the meeting.",
+      "translation": "회의에서 내 연구 결과를 발표할 것입니다."
+    }
+  ],
+  "quizWrongAnswers": ["과거", "미래", "숨기다"],
+  "addedAt": "2023-10-01"
+}
+
+!! QUIZ WRONG ANSWERS GENERATION RULES !!:
+- quizWrongAnswers must be exactly 3 Korean meanings that are INCORRECT but plausible
+- They should be meanings that could confuse someone learning the word
+- They must be different from the correct meaning but semantically related if possible
+- Examples:
+  * For "happy" (행복한): wrong answers could be ["슬픈", "화난", "피곤한"]
+  * For "run" (달리다): wrong answers could be ["걷다", "뛰어오르다", "멈추다"]  
+  * For "book" (책): wrong answers could be ["잡지", "신문", "편지"]
+
+LANGUAGE-SPECIFIC EXAMPLES:
+- For English word "happy": synonyms = ["joyful", "cheerful", "content"] ← CORRECT
+- For French word "heureux": synonyms = ["content", "joyeux", "ravi"] ← CORRECT  
+- For Spanish word "feliz": synonyms = ["contento", "alegre", "gozoso"] ← CORRECT
+- For ANY language: synonyms = ["한글단어", "Korean", "words"] ← WRONG!! NEVER DO THIS
+
+REMEMBER: synonyms must match the input word's language, NEVER Korean!
 `;
 
 class GeminiWordAnalyzer {
@@ -82,6 +176,12 @@ If the input word "${word}" is in any other language, ALL synonyms must be in th
 				zh: "Chinese",
 				es: "Spanish",
 				fr: "French",
+				de: "German",
+				it: "Italian",
+				ru: "Russian",
+				pt: "Portuguese",
+				hi: "Hindi",
+				ar: "Arabic",
 			};
 
 			const languageName = languageNames[selectedLanguage];
@@ -100,14 +200,17 @@ If the input word "${word}" is determined to be in any other language, ALL synon
 			}
 		}
 
-		return CACHED_SYSTEM_INSTRUCTION + `
+		return (
+			CACHED_SYSTEM_INSTRUCTION +
+			`
 
 Word to analyze: "${word}"
 
 Replace [INPUT_WORD] with "${word}" and [CURRENT_DATE] with "${currentDate}" in your JSON response.
 
 ${languageInstructions}
-`;
+`
+		);
 	}
 
 	async analyzeWord(word, selectedLanguage = null, retryCount = 0) {
