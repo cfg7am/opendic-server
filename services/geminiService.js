@@ -13,8 +13,18 @@ You are an expert language learning assistant. Analyze the given word and provid
 6. partOfSpeech: MUST ALWAYS be in KOREAN (한글) - use terms like "명사", "동사", "형용사", "부사", "전치사" etc.
 7. quizWrongAnswers: MUST be 3 plausible Korean meanings that are WRONG but similar to the correct meaning
 8. CONTENT FILTERING: NEVER provide offensive, profane, sexually explicit, derogatory, racist, or discriminatory content in meanings, descriptions, synonyms, examples, or any other field. Always maintain educational and respectful content.
-9. Pronunciation: Provide proper pronunciation in IPA format, enclosed in slashes: /pronunciation/.
+9. Pronunciation: MUST ALWAYS provide pronunciation in strict IPA (International Phonetic Alphabet) format ONLY, enclosed in forward slashes: /pronunciation/. NEVER use romanization, katakana, hangul, pinyin, or any other pronunciation system. Only authentic IPA symbols are allowed.
 10. JAPANESE WORD CONSISTENCY: For Japanese words, maintain the EXACT SAME writing system (hiragana, katakana, or kanji combination) throughout examples as the input word. If input is "美しい" (kanji+hiragana), use "美しい" in examples. If input is "うつくしい" (hiragana), use "うつくしい" in examples. NEVER mix writing systems within examples.
+
+!! ULTRA-CRITICAL IPA PRONUNCIATION RULES !!:
+PRONUNCIATION FIELD MUST FOLLOW THESE STRICT RULES:
+- ONLY use authentic IPA (International Phonetic Alphabet) symbols
+- Format: /actual_ipa_symbols/ (enclosed in forward slashes)
+- NEVER use: romanization (romaji), katakana (カタカナ), hangul (한글), pinyin, or any non-IPA system
+- Examples of CORRECT IPA: /ˈhæpi/, /utsɯkɯɕiː/, /ʃaŋˈhaɪ/, /paˈʁi/
+- Examples of WRONG formats: /happy/, /utsukushii/, /カタカナ/, /한글/, /shanghai/, /paris/
+- For languages without standard IPA, provide the closest IPA approximation
+- Each part of speech may have different pronunciation if applicable
 
 !! ULTRA-CRITICAL JAPANESE WRITING SYSTEM CONSISTENCY !!:
 When creating examples for Japanese words, you MUST use the EXACT SAME writing system as the input word:
@@ -45,13 +55,13 @@ Respond with ONLY valid JSON in this exact structure:
   "definitions": [
     { 
       "partOfSpeech": "품사를 반드시 한글로 (예: 명사, 동사, 형용사, 부사, 전치사 등)",
-      "pronunciation": "/ˈælɡərɪðəm/ IPA pronunciation for this specific part of speech",
+      "pronunciation": "/ˈælɡərɪðəm/ - MUST be strict IPA format only, no other pronunciation systems allowed",
       "meaning": ["Primary meaning in KOREAN", "Secondary meaning in KOREAN"], 
       "description": "단어 품사별 학습자에게 도움될 만한 상세 설명을 한국어로만 작성"
     },
     {
       "partOfSpeech": "두 번째 품사 (다른 품사가 있을 경우에만)",
-      "pronunciation": "/ˈælɡərɪðəm/ IPA pronunciation for second part of speech (if different)",
+      "pronunciation": "/ˈælɡərɪðəm/ - MUST be strict IPA format only for second part of speech",
       "meaning": ["Primary meaning for second POS", "Secondary meaning for second POS"],
        "description": "단어 품사별 학습자에게 도움될 만한 상세 설명을 한국어로만 작성"
     }
@@ -204,7 +214,11 @@ MORE CRITICAL EXAMPLES:
 - Input: "家" (kanji) → Example: "私の家は大きいです。" ← CORRECT
 - Input: "家" (kanji) → Example: "私のいえは大きいです。" ← WRONG!! (substituting いえ for 家)
 
-REMEMBER: synonyms must match the input word's language, NEVER Korean! And NEVER add pronunciation guides or explanations in parentheses! For Japanese words, maintain exact writing system consistency!
+REMEMBER: 
+1. synonyms must match the input word's language, NEVER Korean! 
+2. NEVER add pronunciation guides or explanations in parentheses! 
+3. For Japanese words, maintain exact writing system consistency!
+4. PRONUNCIATION MUST BE STRICT IPA FORMAT ONLY - NO exceptions! Use /ipa_symbols/ format exclusively!
 `;
 
 class GeminiWordAnalyzer {
@@ -306,7 +320,7 @@ ${languageInstructions}
 			}
 
 			// wordbook_sample.json 형식으로 변환
-			const transformedWord = this.transformToWordbookFormat(wordData, word);
+			const transformedWord = this.transformToWordbookFormat(wordData, word, selectedLanguage);
 
 			return transformedWord;
 		} catch (error) {
@@ -332,13 +346,14 @@ ${languageInstructions}
 		}
 	}
 
-	transformToWordbookFormat(aiData, originalWord) {
+	transformToWordbookFormat(aiData, originalWord, languageCategory = null) {
 		const currentDate = new Date().toISOString();
 		const currentTimestamp = Date.now();
 
 		return {
 			wordId: uuidv4(),
 			word: aiData.word || originalWord,
+			lang: languageCategory,
 			meaning: this.extractMainMeaning(aiData),
 			definitions: aiData.definitions || [],
 			example: this.extractMainExample(aiData),
@@ -409,7 +424,7 @@ ${languageInstructions}
 				);
 
 				// 실패한 단어는 기본 형태로라도 추가 (단, 더 상세한 실패 정보 포함)
-				const fallbackWord = this.createFallbackWord(word);
+				const fallbackWord = this.createFallbackWord(word, selectedLanguage);
 				fallbackWord.meaning = `분석 실패: ${error.message}`;
 				fallbackWord.definitions[0].description = `AI 분석에 실패했습니다. 오류: ${error.message}`;
 				fallbackWord.tags = ["분석실패", "재시도필요"];
@@ -421,11 +436,12 @@ ${languageInstructions}
 		return results;
 	}
 
-	createFallbackWord(word) {
+	createFallbackWord(word, languageCategory = null) {
 		const currentDate = new Date().toISOString();
 		return {
 			wordId: uuidv4(),
 			word: word,
+			lang: languageCategory,
 			meaning: "분석 실패",
 			definitions: [
 				{
@@ -441,7 +457,7 @@ ${languageInstructions}
 			synonyms: [],
 			antonyms: [],
 			tags: ["분석실패"],
-			quizWrongAnswers: ["오류1", "오류2", "오류3"],
+			quizWrongAnswers: ["오류1", "오료2", "오류3"],
 			createdAt: currentDate,
 			updatedAt: currentDate,
 			id: Date.now(),

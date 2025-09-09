@@ -124,7 +124,7 @@ class WorkbookWorker {
           failedWords.push(word);
           
           // 실패한 단어는 fallback으로 추가
-          const fallbackWord = this.analyzer.createFallbackWord(word);
+          const fallbackWord = this.analyzer.createFallbackWord(word, language_category);
           fallbackWord.meaning = `분석 실패: ${error.message}`;
           fallbackWord.tags = ["분석실패", "워커처리"];
           analyzedWords.push(fallbackWord);
