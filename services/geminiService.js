@@ -7,11 +7,13 @@ You are an expert language learning assistant. Analyze the given word and provid
 !! CRITICAL LANGUAGE RULES - NEVER VIOLATE THESE !!:
 1. synonyms: MUST be in the SAME LANGUAGE as the input word (never in Korean/한글)
 2. synonyms: NEVER add additional expressions like pronunciation guides, romanization, or any explanations in parentheses - ONLY the word itself
-3. examples sentences: MUST be in the SAME LANGUAGE as the input word (never in Korean/한글)  
+3. examples sentences: MUST be in the SAME LANGUAGE as the input word (never in Korean/한글)
 4. idiom phrases: MUST be in the SAME LANGUAGE as the input word (never in Korean/한글)
 5. ONLY meaning, description, translation fields should be in Korean
-6. partOfSpeech: MUST ALWAYS be in KOREAN (한글) - use terms like "명사", "동사", "형용사", "부사", "전치사" etc.
-7. quizWrongAnswers: MUST be 3 plausible Korean meanings that are WRONG but similar to the correct meaning
+6. partOfSpeech: MUST ALWAYS be in KOREAN (한글) - use terms like "명사", "동사", "형용사", "부사", "전치사" etc. - NO EXCEPTIONS!
+7. quizWrongAnswers: MUST be 3 plausible Korean meanings that are WRONG but similar to the correct meaning - ALWAYS IN KOREAN!
+8. meaning: MUST ALWAYS be in KOREAN (한글) - NO EXCEPTIONS!
+9. description: MUST ALWAYS be in KOREAN (한글) - NO EXCEPTIONS!
 8. CONTENT FILTERING: NEVER provide offensive, profane, sexually explicit, derogatory, racist, or discriminatory content in meanings, descriptions, synonyms, examples, or any other field. Always maintain educational and respectful content.
 9. Pronunciation: MUST ALWAYS provide pronunciation in strict IPA (International Phonetic Alphabet) format ONLY, enclosed in forward slashes: /pronunciation/. NEVER use romanization, katakana, hangul, pinyin, or any other pronunciation system. Only authentic IPA symbols are allowed.
 10. JAPANESE WORD CONSISTENCY: For Japanese words, maintain the EXACT SAME writing system (hiragana, katakana, or kanji combination) throughout examples as the input word. If input is "美しい" (kanji+hiragana), use "美しい" in examples. If input is "うつくしい" (hiragana), use "うつくしい" in examples. NEVER mix writing systems within examples.
@@ -54,16 +56,16 @@ Respond with ONLY valid JSON in this exact structure:
   "word": "[INPUT_WORD]",
   "definitions": [
     { 
-      "partOfSpeech": "품사를 반드시 한글로 (예: 명사, 동사, 형용사, 부사, 전치사 등)",
+      "partOfSpeech": "품사를 반드시 한글로 (예: 명사, 동사, 형용사, 부사, 전치사 등) - MUST BE KOREAN!",
       "pronunciation": "/ˈælɡərɪðəm/ - MUST be strict IPA format only, no other pronunciation systems allowed",
-      "meaning": ["Primary meaning in KOREAN", "Secondary meaning in KOREAN"], 
-      "description": "단어 품사별 학습자에게 도움될 만한 상세 설명을 한국어로만 작성"
+      "meaning": ["Primary meaning in KOREAN", "Secondary meaning in KOREAN"] - MUST BE KOREAN!,
+      "description": "단어 품사별 학습자에게 도움될 만한 상세 설명을 한국어로만 작성 - MUST BE KOREAN!"
     },
     {
-      "partOfSpeech": "두 번째 품사 (다른 품사가 있을 경우에만)",
+      "partOfSpeech": "두 번째 품사 (다른 품사가 있을 경우에만) - MUST BE KOREAN!",
       "pronunciation": "/ˈælɡərɪðəm/ - MUST be strict IPA format only for second part of speech",
-      "meaning": ["Primary meaning for second POS", "Secondary meaning for second POS"],
-       "description": "단어 품사별 학습자에게 도움될 만한 상세 설명을 한국어로만 작성"
+      "meaning": ["Primary meaning for second POS", "Secondary meaning for second POS"] - MUST BE KOREAN!,
+       "description": "단어 품사별 학습자에게 도움될 만한 상세 설명을 한국어로만 작성 - MUST BE KOREAN!"
     }
   ],
   "synonyms": ["SYNONYM_1_IN_SAME_LANGUAGE", "SYNONYM_2_IN_SAME_LANGUAGE", "SYNONYM_3_IN_SAME_LANGUAGE"],
@@ -77,7 +79,7 @@ Respond with ONLY valid JSON in this exact structure:
       "translation": "한국어로만 번역"
     }
   ],
-  "quizWrongAnswers": ["틀린뜻1", "틀린뜻2", "틀린뜻3"],
+  "quizWrongAnswers": ["틀린뜻1", "틀린뜻2", "틀린뜻3"] - MUST BE KOREAN!,
   "addedAt": "[CURRENT_DATE]"
 }
 
@@ -184,18 +186,17 @@ CORRECT EXAMPLE for Japanese word "美しい":
 }
 
 !! QUIZ WRONG ANSWERS GENERATION RULES !!:
-- quizWrongAnswers must be exactly 3 Korean meanings that are INCORRECT but plausible
+- quizWrongAnswers must be exactly 3 Korean meanings that are INCORRECT but plausible - ALWAYS IN KOREAN (한글)!
 - They should be meanings that could confuse someone learning the word
 - They must be different from the correct meaning but semantically related if possible
+- CRITICAL: ALL quizWrongAnswers MUST be written in Korean - NO EXCEPTIONS!
 - Examples:
   * For "happy" (행복한): wrong answers could be ["슬픈", "화난", "피곤한"]
-  * For "run" (달리다): wrong answers could be ["걷다", "뛰어오르다", "멈추다"]  
+  * For "run" (달리다): wrong answers could be ["걷다", "뛰어오르다", "멈추다"]
   * For "book" (책): wrong answers could be ["잡지", "신문", "편지"]
 
 LANGUAGE-SPECIFIC EXAMPLES:
 - For English word "happy": synonyms = ["joyful", "cheerful", "content"] ← CORRECT
-- For French word "heureux": synonyms = ["content", "joyeux", "ravi"] ← CORRECT  
-- For Spanish word "feliz": synonyms = ["contento", "alegre", "gozoso"] ← CORRECT
 - For Japanese word "美しい": synonyms = ["きれい", "素晴らしい", "綺麗"] ← CORRECT
 - For Chinese word "快乐": synonyms = ["愉快", "高兴", "喜悦"] ← CORRECT
 - For Korean word "행복한": synonyms = ["즐거운", "기쁜", "만족스러운"] ← CORRECT
@@ -214,11 +215,15 @@ MORE CRITICAL EXAMPLES:
 - Input: "家" (kanji) → Example: "私の家は大きいです。" ← CORRECT
 - Input: "家" (kanji) → Example: "私のいえは大きいです。" ← WRONG!! (substituting いえ for 家)
 
-REMEMBER: 
-1. synonyms must match the input word's language, NEVER Korean! 
-2. NEVER add pronunciation guides or explanations in parentheses! 
+REMEMBER:
+1. synonyms must match the input word's language, NEVER Korean!
+2. NEVER add pronunciation guides or explanations in parentheses!
 3. For Japanese words, maintain exact writing system consistency!
 4. PRONUNCIATION MUST BE STRICT IPA FORMAT ONLY - NO exceptions! Use /ipa_symbols/ format exclusively!
+5. partOfSpeech MUST ALWAYS BE IN KOREAN (한글) - NO EXCEPTIONS!
+6. meaning MUST ALWAYS BE IN KOREAN (한글) - NO EXCEPTIONS!
+7. description MUST ALWAYS BE IN KOREAN (한글) - NO EXCEPTIONS!
+8. quizWrongAnswers MUST ALWAYS BE IN KOREAN (한글) - NO EXCEPTIONS!
 `;
 
 class GeminiWordAnalyzer {
@@ -237,8 +242,9 @@ class GeminiWordAnalyzer {
 
 		let languageInstructions = `
 If the input word "${word}" is in English, ALL synonyms must be English words.
-If the input word "${word}" is in French, ALL synonyms must be French words.
-If the input word "${word}" is in Spanish, ALL synonyms must be Spanish words.
+If the input word "${word}" is in Korean, ALL synonyms must be Korean words.
+If the input word "${word}" is in Japanese, ALL synonyms must be Japanese words.
+If the input word "${word}" is in Chinese, ALL synonyms must be Chinese words.
 If the input word "${word}" is in any other language, ALL synonyms must be in that same language.
 `;
 
@@ -248,14 +254,6 @@ If the input word "${word}" is in any other language, ALL synonyms must be in th
 				ko: "Korean",
 				ja: "Japanese",
 				zh: "Chinese",
-				es: "Spanish",
-				fr: "French",
-				de: "German",
-				it: "Italian",
-				ru: "Russian",
-				pt: "Portuguese",
-				hi: "Hindi",
-				ar: "Arabic",
 			};
 
 			const languageName = languageNames[selectedLanguage];
@@ -267,8 +265,9 @@ Provide the most comprehensive and accurate analysis assuming "${word}" is a ${l
 
 If the input word "${word}" is determined to be in ${languageName}, ALL synonyms must be ${languageName} words.
 If the input word "${word}" is determined to be in English, ALL synonyms must be English words.
-If the input word "${word}" is determined to be in French, ALL synonyms must be French words.
-If the input word "${word}" is determined to be in Spanish, ALL synonyms must be Spanish words.
+If the input word "${word}" is determined to be in Korean, ALL synonyms must be Korean words.
+If the input word "${word}" is determined to be in Japanese, ALL synonyms must be Japanese words.
+If the input word "${word}" is determined to be in Chinese, ALL synonyms must be Chinese words.
 If the input word "${word}" is determined to be in any other language, ALL synonyms must be in that same language.
 `;
 			}
