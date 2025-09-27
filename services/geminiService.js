@@ -293,7 +293,7 @@ ${languageInstructions}
 			const prompt = this.createWordAnalysisPrompt(word, selectedLanguage);
 
 			const result = await this.genAI.models.generateContent({
-				model: "gemini-1.5-flash-latest",
+				model: "gemini-2.0-flash-lite",
 				contents: prompt,
 				config: {
 					generationConfig: { responseMimeType: "application/json" },
