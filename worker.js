@@ -142,6 +142,7 @@ class WorkbookWorker {
       const wordbookData = {
         wordbookId: uuidv4(),
         wordbookName,
+        emoji: job.data.emoji || '📚',
         folderId: uuidv4(),
         folderName: "기본 폴더",
         language: {
