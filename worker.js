@@ -105,14 +105,14 @@ class WorkbookWorker {
           
           // 진행상황 업데이트
           await job.updateProgress(
-            i, 
-            words.length, 
-            word, 
+            i,
+            words.length,
+            word,
             `분석 중: ${word} (${i + 1}/${words.length})`
           );
-          
-          // 단어 분석
-          const analyzedWord = await this.analyzer.analyzeWord(word, language_category);
+
+          // 단어 분석 (단어장 설명 전달)
+          const analyzedWord = await this.analyzer.analyzeWord(word, language_category, description);
           analyzedWords.push(analyzedWord);
           
           // 20초 대기 (API Rate Limiting 방지)
@@ -170,14 +170,19 @@ class WorkbookWorker {
         totalAnalyzed: analyzedWords.length,
         successfullyAnalyzed: analyzedWords.length - failedWords.length,
         failedWords: failedWords,
-        wordbookId: null // Main 앱에서 저장 후 ID 받을 예정
+        wordbookId: null // 승인 후 저장될 예정
       };
-      
-      // 메인 애플리케이션에 완성된 단어장 전송
-      await this.sendCompletedWordbookToMainApp(wordbookData, job.jobId, completionResult);
-      
-      // 작업 완료 처리 (Main 앱에서 저장되므로 임시 ID 사용)
-      await job.markCompleted('pending_main_app_save', completionResult);
+
+      // 완료된 단어장 데이터를 Job에 저장 (관리자 승인 대기)
+      job.status = 'pending_approval';
+      job.completedAt = new Date();
+      job.data.analyzedWordsData = wordbookData; // 완성된 단어장 데이터 전체 저장
+      job.progress.current = words.length;
+      job.progress.message = '✅ 단어 분석 완료! 관리자 승인 대기 중...';
+      await job.save();
+
+      console.log(`[${this.workerId}] Job ${job.jobId} completed and waiting for approval`);
+      console.log(`[${this.workerId}] Analyzed ${analyzedWords.length} words (${completionResult.successfullyAnalyzed} successful, ${failedWords.length} failed)`);
 
     } catch (error) {
       console.error(`[${this.workerId}] Job processing failed:`, error);
@@ -197,41 +202,6 @@ class WorkbookWorker {
     const direction = directions[Math.floor(Math.random() * directions.length)];
     const colorPair = colors[Math.floor(Math.random() * colors.length)];
     return `linear-gradient(${direction}, ${colorPair[0]}, ${colorPair[1]})`;
-  }
-
-  async sendCompletedWordbookToMainApp(wordbookData, jobId, result) {
-    try {
-      const mainAppUrl = process.env.MAIN_APP_URL;
-      if (!mainAppUrl) {
-        console.log(`[${this.workerId}] MAIN_APP_URL not configured, skipping callback`);
-        return;
-      }
-
-      const { default: fetch } = await import('node-fetch');
-      const response = await fetch(`${mainAppUrl}/admin/wordbooks/worker-completed`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          wordbookData,
-          jobId,
-          result
-        }),
-        timeout: 30000 // 30초 타임아웃
-      });
-
-      if (response.ok) {
-        const responseData = await response.json();
-        console.log(`[${this.workerId}] Successfully sent completed wordbook to main app:`, responseData);
-      } else {
-        const errorText = await response.text();
-        console.error(`[${this.workerId}] Failed to send wordbook to main app:`, response.status, errorText);
-      }
-    } catch (error) {
-      console.error(`[${this.workerId}] Error sending wordbook to main app:`, error);
-      // 메인 앱으로의 전송이 실패해도 워커의 작업 완료 처리는 계속 진행
-    }
   }
 
   async cleanupOldJobs() {

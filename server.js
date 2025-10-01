@@ -90,7 +90,7 @@ app.get("/api/jobs", async (req, res) => {
 		let query = {};
 		if (
 			status &&
-			["pending", "running", "completed", "failed", "cancelled"].includes(
+			["pending", "running", "completed", "failed", "cancelled", "pending_approval"].includes(
 				status
 			)
 		) {
@@ -197,10 +197,32 @@ app.post("/api/jobs/:jobId/restart", async (req, res) => {
 	}
 });
 
+// DELETE /api/jobs/:jobId - 작업 삭제
+app.delete("/api/jobs/:jobId", async (req, res) => {
+	try {
+		const job = await Job.findOne({ jobId: req.params.jobId });
+
+		if (!job) {
+			return res.status(404).json({ error: "작업을 찾을 수 없습니다." });
+		}
+
+		await Job.deleteOne({ jobId: req.params.jobId });
+		console.log(`Job deleted: ${req.params.jobId}`);
+
+		res.json({
+			success: true,
+			message: "작업이 삭제되었습니다.",
+		});
+	} catch (error) {
+		console.error("Error deleting job:", error);
+		res.status(500).json({ error: error.message });
+	}
+});
+
 // POST /api/jobs/:jobId/finalize - 작업 최종 완료 (Main 앱에서 저장 완료 후 호출)
 app.post("/api/jobs/:jobId/finalize", async (req, res) => {
 	try {
-		const { wordbookId, finalResult } = req.body;
+		const { wordbookId, finalResult, status: newStatus } = req.body;
 		const job = await Job.findOne({ jobId: req.params.jobId });
 
 		if (!job) {
@@ -208,21 +230,28 @@ app.post("/api/jobs/:jobId/finalize", async (req, res) => {
 		}
 
 		// 작업 결과 업데이트
-		job.result = {
-			...job.result,
-			...finalResult,
-			wordbookId
-		};
-		
-		// 상태가 아직 완료되지 않았다면 완료로 변경
-		if (job.status !== 'completed') {
-			job.status = 'completed';
+		if (wordbookId) {
+			job.data.wordbookId = wordbookId;
+		}
+		if (finalResult) {
+			job.data.analyzedWordsData = {
+				...job.data.analyzedWordsData,
+				...finalResult
+			};
+		}
+
+		// 상태 업데이트 (요청에서 받은 상태 또는 기본값 'completed')
+		job.status = newStatus || 'completed';
+		if (!job.completedAt) {
 			job.completedAt = new Date();
 		}
-		
+		job.progress.message = newStatus === 'completed' ?
+			'✅ 작업이 승인되어 완료되었습니다!' :
+			'작업이 최종 처리되었습니다.';
+
 		await job.save();
-		
-		console.log(`Job finalized: ${job.jobId} with wordbook ID: ${wordbookId}`);
+
+		console.log(`Job finalized: ${job.jobId} with status: ${job.status}${wordbookId ? `, wordbook ID: ${wordbookId}` : ''}`);
 
 		res.json({
 			success: true,

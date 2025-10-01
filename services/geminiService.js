@@ -237,7 +237,7 @@ class GeminiWordAnalyzer {
 		});
 	}
 
-	createWordAnalysisPrompt(word, selectedLanguage = null) {
+	createWordAnalysisPrompt(word, selectedLanguage = null, wordbookDescription = null) {
 		const currentDate = new Date().toISOString().split("T")[0];
 
 		let languageInstructions = `
@@ -273,6 +273,23 @@ If the input word "${word}" is determined to be in any other language, ALL synon
 			}
 		}
 
+		let contextInstructions = '';
+		if (wordbookDescription && wordbookDescription.trim()) {
+			contextInstructions = `
+
+!! WORDBOOK CONTEXT - CRITICAL !!:
+This word is being added to a wordbook with the following description/theme:
+"${wordbookDescription}"
+
+IMPORTANT: When a word has MULTIPLE MEANINGS, you MUST prioritize the meaning that best fits this wordbook's context and theme.
+- Select definitions, meanings, and examples that align with the wordbook's purpose
+- If the word has multiple parts of speech, focus on the ones most relevant to this context
+- Ensure examples and synonyms reflect the usage that matches this wordbook's theme
+- For example, if the wordbook is about "Business English" and the word is "present", prioritize the verb meaning (to present/show) over the noun meaning (gift)
+- If the wordbook is about "TOEIC Essential Words", focus on common business and professional usage
+`;
+		}
+
 		return (
 			CACHED_SYSTEM_INSTRUCTION +
 			`
@@ -282,15 +299,16 @@ Word to analyze: "${word}"
 Replace [INPUT_WORD] with "${word}" and [CURRENT_DATE] with "${currentDate}" in your JSON response.
 
 ${languageInstructions}
+${contextInstructions}
 `
 		);
 	}
 
-	async analyzeWord(word, selectedLanguage = null, retryCount = 0) {
+	async analyzeWord(word, selectedLanguage = null, wordbookDescription = null, retryCount = 0) {
 		const maxRetries = 2; // 최대 2번까지 재시도 (총 3번 시도)
 
 		try {
-			const prompt = this.createWordAnalysisPrompt(word, selectedLanguage);
+			const prompt = this.createWordAnalysisPrompt(word, selectedLanguage, wordbookDescription);
 
 			const result = await this.genAI.models.generateContent({
 				model: "gemini-2.0-flash-lite",
@@ -334,7 +352,7 @@ ${languageInstructions}
 				await new Promise((resolve) => setTimeout(resolve, 20000));
 
 				// 재귀 호출로 재시도
-				return this.analyzeWord(word, selectedLanguage, retryCount + 1);
+				return this.analyzeWord(word, selectedLanguage, wordbookDescription, retryCount + 1);
 			}
 
 			// 최대 재시도 횟수 초과시 에러 던지기

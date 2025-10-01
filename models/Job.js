@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 const JobSchema = new mongoose.Schema({
   jobId: { type: String, required: true, unique: true },
   type: { type: String, required: true }, // 'wordbook_generation'
-  status: { 
-    type: String, 
-    enum: ['pending', 'running', 'completed', 'failed', 'cancelled'], 
-    default: 'pending' 
+  status: {
+    type: String,
+    enum: ['pending', 'running', 'completed', 'failed', 'cancelled', 'pending_approval'],
+    default: 'pending'
   },
   priority: { type: Number, default: 0 }, // 높을수록 우선순위 높음
   
@@ -123,7 +123,8 @@ JobSchema.statics = {
       running: 0,
       completed: 0,
       failed: 0,
-      cancelled: 0
+      cancelled: 0,
+      pending_approval: 0
     };
     
     stats.forEach(stat => {
